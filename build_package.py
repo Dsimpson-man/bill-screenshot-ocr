@@ -75,4 +75,4 @@ if os.path.isdir(TPL):
 print()
 print('分发方式：把 %s 整个文件夹压缩后发给别人，解压后双击「启动.bat」。'
       % os.path.basename(DIST))
-print('注意：dist_template/*.bat 必须是 GBK(cp936) + CRLF 编码，改动前请先看文件头部注释。')
+print('注意：dist_template/*.bat 必须保持纯 ASCII + CRLF，不要加中文、不要加 chcp（详见 README）。')
