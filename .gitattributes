@@ -2,6 +2,8 @@
 * text=auto eol=lf
 
 # Windows 批处理必须用 CRLF，否则可能无法执行
+# 另外：本项目的 .bat 一律保存为 GBK(cp936) 编码，不要改成 UTF-8、也不要加 chcp 65001
+# —— cmd.exe 在读取过程中切换代码页会解析错位，脚本只会执行一部分（详见 run.bat 头部注释）
 *.bat text eol=crlf
 *.cmd text eol=crlf
 
