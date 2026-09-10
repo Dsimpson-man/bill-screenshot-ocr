@@ -1,0 +1,45 @@
+# ---------- Python ----------
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.venv/
+venv/
+env/
+ENV/
+
+# ---------- 运行产物（含个人账单数据，绝对不要提交）----------
+识别结果/
+临时文件/
+outputs/
+uploads/
+slices/
+*.xlsx
+*.xls
+*.csv
+
+# ---------- OCR / 构建中间文件 ----------
+ocr_raw.json
+ocr_dedup.json
+rows_final.json
+blocks.json
+table.json
+build_pkg/
+build_tmp/
+build/
+dist_pkg/
+dist/
+*.spec
+
+# ---------- 分发包 ----------
+*.zip
+*.7z
+*.rar
+
+# ---------- 编辑器 / 系统 ----------
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+desktop.ini
