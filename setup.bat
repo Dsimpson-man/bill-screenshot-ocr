@@ -1,17 +1,18 @@
 @echo off
 rem ==========================================================
-rem  本文件必须保存为 GBK(cp936) 编码 + CRLF 换行！
-rem  不要改成 UTF-8，也不要加 chcp 65001：
-rem  cmd.exe 在读取过程中切换代码页会解析错位，
-rem  导致脚本只执行一部分，程序根本不会被调用。
+rem  Keep this file PLAIN ASCII with CRLF line endings.
+rem  Do not put non-ASCII text here, and do not use "chcp":
+rem  cmd.exe can lose its place when the code page changes
+rem  mid-file, then the program is never launched at all.
+rem  Chinese messages are printed by the application itself.
 rem ==========================================================
 cd /d "%~dp0"
-title 账单截图识别工具 - 安装依赖
+title Bill Screenshot OCR - setup
 
 echo.
-echo   账单截图识别工具 - 环境准备
+echo   Preparing the Python environment...
 echo   --------------------------------------------
-echo   只需执行一次，之后直接双击 run.bat
+echo   Run this only once, then use run.bat.
 echo   --------------------------------------------
 echo.
 
@@ -20,39 +21,39 @@ where py >nul 2>&1 && set PYCMD=py -3
 if "%PYCMD%"=="" ( where python >nul 2>&1 && set PYCMD=python )
 
 if "%PYCMD%"=="" (
-    echo   [错误] 没有找到 Python。
+    echo   [ERROR] Python not found.
     echo.
-    echo   请先安装 Python 3.9 或更高版本：
+    echo   Please install Python 3.9 or newer from
     echo     https://www.python.org/downloads/
-    echo   安装时务必勾选 "Add Python to PATH"。
+    echo   and tick "Add Python to PATH" during setup.
     echo.
     pause
     exit /b 1
 )
 
-echo   [1/3] 使用 Python 命令：%PYCMD%
+echo   [1/3] Using: %PYCMD%
 %PYCMD% -m venv .venv
 if errorlevel 1 (
-    echo   [错误] 创建虚拟环境失败。
+    echo   [ERROR] Failed to create the virtual environment.
     pause
     exit /b 1
 )
 
-echo   [2/3] 升级 pip ...
+echo   [2/3] Upgrading pip ...
 ".venv\Scripts\python.exe" -m pip install --upgrade pip
 
-echo   [3/3] 安装依赖，首次约需 1~3 分钟（会下载 OCR 模型）...
+echo   [3/3] Installing dependencies (first run downloads the OCR model, 1~3 min) ...
 ".venv\Scripts\python.exe" -m pip install -r requirements.txt
 if errorlevel 1 (
     echo.
-    echo   [错误] 依赖安装失败，请检查网络后重新运行本脚本。
+    echo   [ERROR] Dependency installation failed. Check your network and retry.
     pause
     exit /b 1
 )
 
 echo.
 echo   --------------------------------------------
-echo   安装完成！以后双击 run.bat 启动即可。
+echo   Done. From now on just double-click run.bat.
 echo   --------------------------------------------
 echo.
 pause
