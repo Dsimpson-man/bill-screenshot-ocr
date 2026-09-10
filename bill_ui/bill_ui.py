@@ -3,6 +3,29 @@
 import os, sys, threading, traceback, uuid, time
 from collections import Counter, defaultdict
 
+# 横幅由程序自己打印，不写在 .bat 里 —— 见下方说明。
+# Python 在 Windows 控制台走 WriteConsoleW，中文显示与代码页无关；
+# 而 .bat 里的中文会受到系统 ANSI 码页影响，很容易踩坑。
+BANNER = """
+   账单截图识别工具
+   --------------------------------------------
+   正在启动，首次加载模型约需 15~30 秒。
+   浏览器会自动打开，请不要关掉本窗口。
+   如果浏览器没反应，手动访问：http://127.0.0.1:8848
+   关掉本窗口即退出程序。
+   --------------------------------------------
+"""
+
+if __name__ == '__main__':
+    # 尽早输出：下面要 import OCR 运行时，比较慢，先让用户看到窗口有反应
+    for _stream in (sys.stdout, sys.stderr):
+        try:
+            _stream.reconfigure(line_buffering=True)
+        except Exception:
+            pass
+    print(BANNER)
+    sys.stdout.flush()
+
 import numpy as np
 from flask import Flask, request, jsonify, send_file, abort
 from PIL import Image
