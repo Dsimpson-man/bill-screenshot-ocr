@@ -253,35 +253,88 @@ def port_in_use(port):
         s.close()
 
 
+def setup_runtime():
+    """启动时的运行时准备：行缓冲输出 + 中文控制台标题。
+
+    行缓冲很重要：stdout 被重定向到管道/文件时 Python 默认是块缓冲，
+    诊断信息会一直攒着不显示，出问题时就看不到任何线索。
+    """
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(line_buffering=True)
+        except Exception:
+            pass
+    if sys.platform == 'win32':
+        try:
+            import ctypes
+            ctypes.windll.kernel32.SetConsoleTitleW('账单截图识别工具 - 服务窗口')
+        except Exception:
+            pass
+
+
+def open_in_browser(url):
+    """依次尝试多种方式唤起浏览器，任一成功即返回 True。
+
+    打包成 exe 后 webbrowser 模块的注册表探测可能失灵，所以这里逐级降级，
+    并且把失败原因打印出来 —— 静默失败是上一版最难排查的问题。
+    """
+    # 1) webbrowser（正常情况走这条）
+    try:
+        import webbrowser
+        if webbrowser.open(url):
+            print('已请求浏览器打开：%s' % url)
+            return True
+        print('webbrowser.open 返回 False，换用其他方式…')
+    except Exception as e:
+        print('webbrowser.open 失败：%r' % (e,))
+
+    if sys.platform == 'win32':
+        # 2) 直接用系统默认程序打开（ShellExecute）
+        try:
+            os.startfile(url)
+            print('已用系统默认程序打开：%s' % url)
+            return True
+        except Exception as e:
+            print('os.startfile 失败：%r' % (e,))
+
+        # 3) 兜底：交给 cmd 的 start
+        try:
+            import subprocess
+            subprocess.Popen('start "" "%s"' % url, shell=True)
+            print('已用 start 命令打开：%s' % url)
+            return True
+        except Exception as e:
+            print('start 命令失败：%r' % (e,))
+
+    print('自动打开浏览器失败，请手动访问：%s' % url)
+    return False
+
+
 def open_browser_when_ready(timeout=90):
     """等服务真正起来后再开浏览器，避免打开一个连不上的页面。"""
     import urllib.request
     t0 = time.time()
+    ready = False
     while time.time() - t0 < timeout:
         try:
             with urllib.request.urlopen(f'{URL}/api/ping', timeout=2) as r:
                 if r.status == 200:
+                    ready = True
                     break
         except Exception:
             time.sleep(0.5)
-    else:
-        print('服务启动超时，请手动打开', URL)
+    if not ready:
+        print('服务启动超时（%d 秒），请手动打开 %s' % (timeout, URL))
         return
-    try:
-        import webbrowser
-        webbrowser.open(URL)
-    except Exception:
-        pass
+    open_in_browser(URL)
 
 
 if __name__ == '__main__':
+    setup_runtime()
+
     if port_in_use(PORT):
         print(f'服务已在运行，直接打开 {URL}')
-        try:
-            import webbrowser
-            webbrowser.open(URL)
-        except Exception:
-            pass
+        open_in_browser(URL)
         try:
             input('按回车键退出...')
         except Exception:
