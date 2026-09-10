@@ -19,8 +19,18 @@ import time
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 PKG = os.path.join(ROOT, 'build_pkg')
-DIST = os.path.join(ROOT, 'dist_pkg')
+# 可选：第一个参数指定输出目录名，默认 dist_pkg
+#   python build_package.py dist_v102
+# 重新打包时建议换个新目录名：PyInstaller 会先删掉同名旧目录，
+# 如果旧目录里文件很多，可能被本机的批量删除保护拦下来。
+DIST = os.path.join(ROOT, sys.argv[1] if len(sys.argv) > 1 else 'dist_pkg')
 PY = sys.executable
+
+if os.path.isdir(DIST) and os.listdir(DIST):
+    print('[提示] 输出目录已存在：%s' % DIST)
+    print('      PyInstaller 会尝试先删除它；若被批量删除保护拦截，')
+    print('      请改用新的目录名，例如：python build_package.py dist_v2')
+    print()
 
 # 1. 整理打包目录（单一来源：bill_ui/ + 根目录 batch_ocr_bills.py）
 if os.path.exists(PKG):
@@ -53,3 +63,16 @@ if r.returncode != 0:
     print((r.stdout or '')[-3000:] + (r.stderr or '')[-3000:])
     sys.exit(1)
 print('打包完成 →', os.path.join(DIST, '账单截图识别工具'))
+
+# 3. 把 dist_template 里的启动脚本和说明复制到 dist_pkg 顶层
+#    （和「账单截图识别工具」文件夹同级，直接压缩 dist_pkg 就能分发）
+TPL = os.path.join(ROOT, 'dist_template')
+if os.path.isdir(TPL):
+    for name in os.listdir(TPL):
+        shutil.copy(os.path.join(TPL, name), os.path.join(DIST, name))
+        print('已复制到 %s 顶层: %s' % (os.path.basename(DIST), name))
+
+print()
+print('分发方式：把 %s 整个文件夹压缩后发给别人，解压后双击「启动.bat」。'
+      % os.path.basename(DIST))
+print('注意：dist_template/*.bat 必须是 GBK(cp936) + CRLF 编码，改动前请先看文件头部注释。')
