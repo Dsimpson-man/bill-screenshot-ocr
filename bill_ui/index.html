@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-page-node-id="Ze0C4xF0qo1VORb7oJGogk">
+<head data-page-node-id="SaEBxhq5dfuvavHRMglGBc">
+<meta charset="utf-8" data-page-node-id="O67McQoPD33IZwjQK7G8Uz">
+<meta name="viewport" content="width=device-width,initial-scale=1" data-page-node-id="JqyOez5Yg6e8cfKRyW1FIO">
+<title>账单截图识别</title>
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;background:#F7F8FA;color:#1F2328;font:14px/1.6 -apple-system,"Segoe UI","Microsoft YaHei",sans-serif}
+  .wrap{max-width:1080px;margin:0 auto;padding:28px 20px 60px}
+  h1{font-size:20px;font-weight:500;margin:0 0 4px}
+  .sub{color:#6B7280;font-size:13px;margin:0 0 22px}
+  .card{background:#fff;border:1px solid #E5E7EB;border-radius:12px}
+  #drop{border:2px dashed #C7CDD6;border-radius:12px;background:#fff;padding:44px 20px;text-align:center;cursor:pointer;transition:.15s}
+  #drop.over{border-color:#2563EB;background:#EFF5FF}
+  #drop.grayed{opacity:.45;pointer-events:none}
+  #drop .big{font-size:15px;font-weight:500}
+  #drop .tip{color:#6B7280;font-size:13px;margin-top:6px}
+  .btn{display:inline-block;padding:9px 18px;border-radius:8px;border:1px solid #D5D9E0;background:#fff;color:#1F2328;font-size:14px;cursor:pointer}
+  .btn.primary{background:#2563EB;border-color:#2563EB;color:#fff}
+  .btn:disabled{opacity:.5;cursor:default}
+  .btn.green{background:#16A34A;border-color:#16A34A;color:#fff}
+  #files{margin-top:18px}
+  .f{display:flex;align-items:center;gap:12px;padding:10px 14px;border-bottom:1px solid #F0F1F3}
+  .f:last-child{border-bottom:0}
+  .fname{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .fmeta{font-size:12px;color:#6B7280;flex:0 0 auto}
+  .bar{height:5px;background:#EDEFF2;border-radius:3px;width:110px;overflow:hidden;flex:0 0 auto}
+  .bar i{display:block;height:100%;background:#2563EB;width:0;transition:width .3s}
+  .tag{font-size:12px;padding:2px 9px;border-radius:20px;background:#F1F3F5;color:#5F6368;flex:0 0 auto}
+  .tag.run{background:#E8F0FE;color:#1A56DB}
+  .tag.ok{background:#E6F6EC;color:#137A3C}
+  .tag.skip{background:#FFF3E0;color:#A05A00}
+  .tag.err{background:#FDECEC;color:#B42318}
+  .overall{margin-top:16px}
+  .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:18px 0}
+  .metric{background:#F7F8FA;border-radius:10px;padding:14px 16px}
+  .metric .k{font-size:12px;color:#6B7280}
+  .metric .v{font-size:22px;font-weight:500;margin-top:2px}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th{text-align:left;font-weight:500;color:#6B7280;padding:8px 10px;border-bottom:1px solid #E5E7EB;white-space:nowrap}
+  td{padding:8px 10px;border-bottom:1px solid #F0F1F3;vertical-align:top}
+  td.amt{text-align:right;font-variant-numeric:tabular-nums;color:#B42318;white-space:nowrap}
+  td.dt{white-space:nowrap;color:#4B5563}
+  .sec{padding:16px 18px;border-bottom:1px solid #E5E7EB}
+  .sec:last-child{border-bottom:0}
+  .sec h2{font-size:14px;font-weight:500;margin:0 0 10px}
+  .head{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .head .phase{font-weight:500}
+  .head .clock{font-variant-numeric:tabular-nums;color:#6B7280;font-size:13px}
+  .pulse{display:inline-block;width:8px;height:8px;border-radius:50%;background:#2563EB;animation:bp 1s ease-in-out infinite}
+  @keyframes bp{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.75)}}
+  #log{max-height:170px;overflow:auto;font:12px/1.75 ui-monospace,Consolas,monospace;background:#FAFBFC;border:1px solid #ECEEF1;border-radius:8px;padding:10px 12px;color:#4B5563}
+  #log div{white-space:pre-wrap}
+  #log .t{color:#9AA1AB;margin-right:8px}
+  .hidden{display:none}
+  .scroll{max-height:420px;overflow:auto}
+  .foot{margin-top:18px;display:flex;gap:10px;align-items:center}
+  .note{font-size:12px;color:#6B7280}
+</style>
+</head>
+<body data-page-node-id="H3oIx8WraztWjtOl1LuEpo">
+<div class="wrap" data-page-node-id="T7bV52WqoRvSUcyooIAqd2">
+  <div class="wrap-head" style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap">
+    <h1 data-page-node-id="RPas3KuFDuWtsNhrBaaI6j">账单截图识别</h1>
+    <span id="conn" class="tag" style="font-size:12px">检测连接中…</span>
+    <span id="ver" class="note"></span>
+  </div>
+  <p class="sub" data-page-node-id="IKnTW4Q0qBrXuYH5JZloTX">拖入图片，或 Ctrl+V 粘贴截图，自动 OCR 识别并导出 Excel</p>
+
+  <div id="offline" class="card hidden" style="padding:16px 18px;border-color:#F5C2C2;background:#FDF3F3;color:#8B2018;margin-bottom:16px">
+    <strong style="font-weight:500">没有连上本地处理服务</strong>
+    <div style="font-size:13px;margin-top:6px;line-height:1.7">
+      当前打开的是静态页面预览，无法识别图片。请在浏览器地址栏打开
+      <code style="background:#fff;padding:2px 6px;border-radius:4px">http://127.0.0.1:8848</code>
+      ，或双击运行 <code style="background:#fff;padding:2px 6px;border-radius:4px">启动账单识别工具.bat</code>
+    </div>
+  </div>
+
+  <div id="drop" class="card" data-page-node-id="dsZFGUSHDjDWp2Te36FJwI">
+    <div class="big" data-page-node-id="ZVgkW1Msh2KVdMTmk6z8Gj">把图片拖到这里</div>
+    <div class="tip" data-page-node-id="oNBi3oGpBjG2S7VTgQN8De">支持多选，JPG / PNG / WEBP；长截图效果最好</div>
+    <div style="margin-top:14px" data-page-node-id="KbtGMaXTuA2pasja7cLa7g"><span class="btn" data-page-node-id="hMbbPtgZIE4B2YzQ4VwNqh">选择文件</span></div>
+    <input type="file" id="picker" multiple accept="image/*" style="display:none" data-page-node-id="o9BSZYdtT2R0IcydymOmA7">
+  </div>
+
+  <div id="files" class="card" data-page-node-id="rv5zBFbraWxNeSAXkO9Nzm">
+    <div class="sec head" style="padding:12px 18px" data-page-node-id="3WPLYl3tZUajFbtgtNyxe9">
+      <span class="pulse" id="dot" data-page-node-id="QV8juAnTyAQ6xhG829SfeE"></span>
+      <span class="phase" id="phase" data-page-node-id="YsbdvKmu4rilhxvVz6MRvV">等待拖入图片</span>
+      <div class="bar" style="flex:1;min-width:120px;width:auto" data-page-node-id="QGv0q07e7ZpPAi091yGM3e"><i id="obar" data-page-node-id="bft8MnFaJxFyoaOvaHmskf"></i></div>
+      <span id="opct" class="fmeta" style="min-width:34px;text-align:right" data-page-node-id="7sk4mdl1w183hZAkOuGfjo">0%</span>
+      <span class="clock" id="clock" data-page-node-id="o6T3COEG9wxbVMSRFcESkG">0.0s</span>
+      <span class="clock" id="eta" data-page-node-id="nxk4dRAH9xFAPZddVWszHT"></span>
+    </div>
+    <div id="flist" data-page-node-id="txZFQq34HCRHF3P0J8lRUd"></div>
+    <div id="logwrap" class="sec" style="padding:12px 18px" data-page-node-id="0CuDyHjnzHCzJzIUbOZYqV"><div id="log" data-page-node-id="WFJ4pFONFze9MGupmRP6Be"></div></div>
+    <div id="bad" class="sec hidden" data-page-node-id="Gl7k3oBW5EvcenwncJecwN"></div>
+  </div>
+
+  <div id="result" class="hidden" data-page-node-id="RcHfsg4Ytw968WoyeQI2nw">
+    <div class="grid" data-page-node-id="EpwbjbzwYJhbCTdgDqcgCV">
+      <div class="metric" data-page-node-id="69UAxWQdonuIgTkfIFtnhF"><div class="k" data-page-node-id="nJKvsr9hUGdEzezvRRxe6j">交易笔数</div><div class="v" id="m-count" data-page-node-id="NrQ9hpffouCYgUmdY9XQfg">-</div></div>
+      <div class="metric" data-page-node-id="hwbAhAvCyBNxyBMNgBThz3"><div class="k" data-page-node-id="m6fjURLWqcCjHROxZVQWDL">支出合计</div><div class="v" id="m-total" data-page-node-id="Dr8Cm0i4Gz1t0mMxnLOsdO">-</div></div>
+      <div class="metric" data-page-node-id="TxE8nBnOgELFDQxTn9MugM"><div class="k" data-page-node-id="cA5EcMZxgzIuUar6Tf8xga">退款笔数</div><div class="v" id="m-refund" data-page-node-id="nyCjccajon8aK1VdXNbdLy">-</div></div>
+      <div class="metric" data-page-node-id="h61twNssHy4MdW2AvrZEaA"><div class="k" data-page-node-id="AWhdqjXtNhDpn5OlqlKZvh">涉及商户</div><div class="v" id="m-shop" data-page-node-id="MUSTXOjYj6LsZCxcG8w7yx">-</div></div>
+    </div>
+    <div class="card" data-page-node-id="yh0EId9WRxwUDLxzLha2RL">
+      <div class="sec" data-page-node-id="s1xXHltIk6CzNeXhVQQ3XF"><h2 data-page-node-id="ZvDiFcgZPGdjs63XcHlrVa">月度汇总</h2><table id="mtab" data-page-node-id="Eih3De7XmF16HqjRjSDBIU"></table></div>
+      <div class="sec" data-page-node-id="KN2DFGdMVhOU2m0wouXNRi"><h2 data-page-node-id="8m0c3F33A3gjR3B3p150iN">明细预览（前 200 条）</h2>
+        <div class="scroll" data-page-node-id="bvpj9QMHoopfaCb0abuc7A"><table id="ptab" data-page-node-id="QqddwnqD5Q5wREcAgnAME3"></table></div>
+      </div>
+    </div>
+    <div class="foot" data-page-node-id="G61FN6JiJJqg7a31ZWUBKM">
+      <button class="btn green" id="dl" data-page-node-id="FEO12LydxncSbVXyGyxMlc">下载 Excel</button>
+      <button class="btn" id="reset" data-page-node-id="qqMv6vawpZF2jlFOukeAyF">再来一批</button>
+      <span class="note" id="range" data-page-node-id="cEbg0JkqStlhD4bWtAXR5L"></span>
+    </div>
+  </div>
+</div>
+
+<script>
+const drop=document.getElementById('drop'),picker=document.getElementById('picker');
+let jobId=null,timer=null,clockTimer=null,t0=null,logLen=0;
+
+function fmt(s){
+  if(s<60)return s.toFixed(1)+'s';
+  const m=Math.floor(s/60);return m+'m'+String(Math.round(s%60)).padStart(2,'0')+'s';
+}
+function startClock(){
+  clearInterval(clockTimer);
+  clockTimer=setInterval(()=>{
+    if(!t0)return;
+    const el=(Date.now()-t0)/1000;
+    document.getElementById('clock').textContent=fmt(el);
+  },100);
+}
+
+drop.onclick=()=>picker.click();
+['dragenter','dragover'].forEach(e=>drop.addEventListener(e,ev=>{ev.preventDefault();drop.classList.add('over')}));
+['dragleave','drop'].forEach(e=>drop.addEventListener(e,ev=>{ev.preventDefault();drop.classList.remove('over')}));
+drop.addEventListener('drop',ev=>handle(ev.dataTransfer.files));
+picker.onchange=ev=>handle(ev.target.files);
+
+function handle(files){
+  if(!files||!files.length)return;
+  const fd=new FormData();
+  for(const f of files)fd.append('files',f);
+  document.getElementById('result').classList.add('hidden');
+  document.getElementById('files').style.display='';
+  t0=Date.now();startClock();logLen=0;
+  fetch('/api/upload',{method:'POST',body:fd})
+    .then(r=>r.ok?r.json():Promise.reject(new Error('HTTP '+r.status)))
+    .then(d=>{jobId=d.job_id;poll();})
+    .catch(e=>{
+      document.getElementById('offline').classList.remove('hidden');
+      alert('上传失败：'+e.message+'\n\n请确认是用浏览器打开的 http://127.0.0.1:8848\n而不是静态文件预览。');
+    });
+}
+
+function esc(s){return(s||'').toString().replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]))}
+
+function poll(){
+  clearInterval(timer);
+  timer=setInterval(tick,600);tick();
+}
+
+function tick(){
+  if(!jobId)return;
+  fetch('/api/status/'+jobId).then(r=>r.json()).then(d=>{
+    drop.classList.add('grayed');
+    if(d.started_at)t0=d.started_at;
+    document.getElementById('obar').style.width=d.progress+'%';
+    document.getElementById('opct').textContent=d.progress+'%';
+    document.getElementById('phase').textContent=d.phase||'处理中';
+
+    const done=d.files.filter(f=>f.status==='done');
+    const elapsed=(Date.now()-t0)/1000;
+    if(done.length&&d.status!=='done'){
+      const avg=elapsed/done.length;
+      const eta=avg*(d.files.length-done.length);
+      document.getElementById('eta').textContent='· 预计剩余 '+fmt(eta);
+    }else{
+      document.getElementById('eta').textContent='';
+    }
+
+    if(d.log&&d.log.length!==logLen){
+      const box=document.getElementById('log');
+      box.innerHTML=d.log.map(l=>`<div><span class="t">${l[0]}</span>${esc(l[1])}</div>`).join('');
+      logLen=d.log.length;
+      box.scrollTop=box.scrollHeight;
+    }
+
+    const map={pending:['排队中',''],running:['识别中','run'],done:['完成','ok'],skipped:['跳过','skip'],error:['失败','err']};
+    document.getElementById('flist').innerHTML=d.files.map(f=>{
+      const t=map[f.status]||['',''];
+      const detail=f.status==='running'?(f.chunks?`第 ${f.chunks} 块`:'处理中')
+                  :f.status==='done'?(f.count?`${f.count} 条${f.elapsed?' / '+f.elapsed+'s':''}`:'完成')
+                  :(f.msg||f.info||'');
+      return `<div class="f">
+        <span class="fname">${esc(f.name)}</span>
+        ${f.count?`<span class="fmeta">${f.count} 条</span>`:''}
+        <span class="fmeta" style="min-width:96px;text-align:right">${esc(detail)}</span>
+        <div class="bar"><i style="width:${f.progress}%${f.status==='running'?';animation:bp 1s infinite':''}"></i></div>
+        <span class="tag ${t[1]}">${t[0]}</span>
+      </div>`;
+    }).join('');
+    if(d.bad&&d.bad.length){
+      document.getElementById('bad').classList.remove('hidden');
+      document.getElementById('bad').innerHTML='<h2>跳过 / 失败</h2><table>'+
+        d.bad.map(b=>`<tr><td>${esc(b[0])}</td><td>${esc(b[1])}</td><td>${esc(b[2])}</td></tr>`).join('')+'</table>';
+    }
+    if(d.status==='done'){
+      clearInterval(timer);clearInterval(clockTimer);
+      document.getElementById('dot').style.display='none';
+      document.getElementById('phase').textContent='全部完成';
+      document.getElementById('eta').textContent='';
+      loadResult();
+    }
+    if(d.status==='error'){clearInterval(timer);clearInterval(clockTimer);alert('处理失败：'+d.error);}
+  });
+}
+
+function loadResult(){
+  fetch('/api/result/'+jobId).then(r=>r.json()).then(d=>{
+    document.getElementById('result').classList.remove('hidden');
+    document.getElementById('m-count').textContent=d.count;
+    document.getElementById('m-total').textContent='¥'+Math.abs(d.total).toLocaleString('zh-CN',{minimumFractionDigits:2});
+    document.getElementById('m-refund').textContent=d.refunds;
+    document.getElementById('m-shop').textContent=d.shops;
+    if(d.range)document.getElementById('range').textContent=`时间范围 ${d.range[0]} ~ ${d.range[1]}`;
+    document.getElementById('mtab').innerHTML='<tr><th>月份</th><th style="text-align:right">笔数</th><th style="text-align:right">支出合计</th><th style="text-align:right">退款笔数</th></tr>'+
+      d.months.map(m=>`<tr><td>${m.m}</td><td style="text-align:right">${m.c}</td><td style="text-align:right">¥${Math.abs(m.s).toLocaleString('zh-CN',{minimumFractionDigits:2})}</td><td style="text-align:right">${m.r}</td></tr>`).join('');
+    document.getElementById('ptab').innerHTML='<tr><th>时间</th><th>类型</th><th>商户</th><th>商品说明</th><th style="text-align:right">金额</th><th>来源</th></tr>'+
+      d.preview.map(p=>`<tr><td class="dt">${esc(p.dt)}</td><td>${esc(p.type)}</td><td>${esc(p.shop)}</td><td>${esc(p.prod)}</td><td class="amt">${p.amt.toFixed(2)}</td><td>${esc(p.src)}</td></tr>`).join('');
+  });
+}
+
+document.getElementById('dl').onclick=()=>{location.href='/api/download/'+jobId};
+document.getElementById('reset').onclick=()=>{location.reload()};
+
+fetch('/api/ping').then(r=>r.ok?r.json():Promise.reject()).then(d=>{
+  document.getElementById('offline').classList.add('hidden');
+  const c=document.getElementById('conn');
+  c.textContent='● 已连接本地服务';
+  c.style.background='#E6F6EC';c.style.color='#137A3C';
+  document.getElementById('ver').textContent='服务已就绪，可以直接拖图进来';
+  if(window.self!==window.top){
+    document.getElementById('ver').textContent=
+      '当前嵌在预览框里，拖图可能被拦截 —— 建议在浏览器新窗口打开 http://127.0.0.1:8848';
+  }
+}).catch(()=>{
+  document.getElementById('offline').classList.remove('hidden');
+  document.getElementById('drop').classList.add('grayed');
+  const c=document.getElementById('conn');
+  c.textContent='○ 未连接（静态预览，无法识别）';
+  c.style.background='#FDECEC';c.style.color='#B42318';
+});
+
+document.addEventListener('paste',ev=>{
+  const items=(ev.clipboardData||{}).items||[];
+  const fs=[...items].filter(i=>i.type.indexOf('image')===0).map(i=>i.getAsFile()).filter(Boolean);
+  if(fs.length)handle(fs);
+});
+</script>
+</body>
+</html>
