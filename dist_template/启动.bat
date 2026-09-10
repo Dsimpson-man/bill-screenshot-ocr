@@ -1,38 +1,34 @@
 @echo off
 rem ==========================================================
-rem  本文件必须保存为 GBK(cp936) 编码 + CRLF 换行！
-rem  不要改成 UTF-8，也不要加 chcp 65001：
-rem  cmd.exe 在读取过程中切换代码页会解析错位，
-rem  导致脚本只执行一部分，程序根本不会被调用。
+rem  Keep this file PLAIN ASCII with CRLF line endings.
+rem  Do not put non-ASCII text here, and do not use "chcp":
+rem  cmd.exe can lose its place when the code page changes
+rem  mid-file, then the program is never launched at all.
+rem  Chinese messages are printed by the application itself.
 rem ==========================================================
 cd /d "%~dp0"
-title 账单截图识别工具 - 服务窗口
+title Bill Screenshot OCR - service window
 
 set "URL=http://127.0.0.1:8848"
 
 echo.
-echo   账单截图识别工具
-echo   --------------------------------------------
-echo   正在启动，首次启动约需 15~30 秒。
-echo   浏览器会自动打开，请不要关掉本窗口。
-echo.
-echo   如果浏览器没反应，手动访问：%URL%
-echo   关掉本窗口即退出程序。
-echo   --------------------------------------------
+echo   Starting... please keep this window open.
+echo   The browser will open automatically.
+echo   If it does not, open this address manually:
+echo       %URL%
 echo.
 
-set "APPEXE=%~dp0账单截图识别工具\账单截图识别工具.exe"
-
-if not exist "%APPEXE%" (
-    rem 目录可能被改名了，改为按 _internal 标记查找
-    set "APPEXE="
-    for /d %%d in (*) do if exist "%%d\_internal" for %%f in ("%%d\*.exe") do set "APPEXE=%%~ff"
-)
+rem Locate the program: find the subfolder that contains _internal.
+set "APPEXE="
+for /d %%d in (*) do if exist "%%d\_internal" for %%f in ("%%d\*.exe") do set "APPEXE=%%~ff"
 
 if not defined APPEXE (
-    echo   [错误] 找不到程序文件。
-    echo   请确认解压时把整个文件夹一起解压出来，
-    echo   不要只单独把 exe 拖出来。
+    echo   [ERROR] Program files not found.
+    echo.
+    echo   Please EXTRACT the whole zip into a folder first,
+    echo   then run this file from inside that folder.
+    echo   Do not run it from inside the zip viewer, and do not
+    echo   move this file away from its folder.
     echo.
     pause
     exit /b 1
@@ -42,5 +38,5 @@ for %%i in ("%APPEXE%") do cd /d "%%~dpi"
 "%APPEXE%"
 
 echo.
-echo   服务已停止。
+echo   Service stopped.
 pause
