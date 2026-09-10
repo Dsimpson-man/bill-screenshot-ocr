@@ -4,12 +4,20 @@
 
 **全程本地离线运行** —— 使用本地 OCR 模型，图片不上传任何服务器，断网也能用。
 
+[![Release](https://img.shields.io/github/v/release/Dsimpson-man/bill-screenshot-ocr?label=release&color=2ea44f)](https://github.com/Dsimpson-man/bill-screenshot-ocr/releases/latest)
 [![Python](https://img.shields.io/badge/Python-3.9%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20macOS%20%7C%20Linux-0078D4)]()
 [![Offline](https://img.shields.io/badge/OCR-%E7%A6%BB%E7%BA%BF%E6%9C%AC%E5%9C%B0-2ea44f)]()
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 ![界面预览](docs/ui-preview.png)
+
+---
+
+> ### ⬇️ 不想装 Python？
+> 直接下载免安装版：**[Releases · 下载 zip](https://github.com/Dsimpson-man/bill-screenshot-ocr/releases/latest)**
+>
+> 解压 → 双击 `启动.bat` → 浏览器自动打开。内置 OCR 模型，**不用装环境、不用联网**。适用于 Windows 10 / 11 64 位。
 
 ---
 
@@ -35,7 +43,13 @@
 
 ## 快速开始
 
-### 方式一：源码运行（推荐）
+### 方式一：下载免安装版（适合非开发者）
+
+到 **[Releases](https://github.com/Dsimpson-man/bill-screenshot-ocr/releases/latest)** 下载 `bill-screenshot-ocr-*-win64.zip`，解压后双击 `启动.bat`。
+
+解压时请**保留整个文件夹** —— `账单截图识别工具/_internal/` 里是 Python 运行时和 OCR 模型，单独把 `exe` 拖出来无法运行。
+
+### 方式二：源码运行（推荐给开发者）
 
 ```bash
 git clone https://github.com/Dsimpson-man/bill-screenshot-ocr.git
@@ -81,7 +95,7 @@ python batch_ocr_bills.py "D:\账单截图" --out "D:\结果.xlsx"
 跳过/失败 1 个文件
 ```
 
-### 方式三：打包成免安装程序
+### 方式四：打包成免安装程序
 
 ```bash
 pip install pyinstaller
@@ -89,6 +103,8 @@ python build_package.py
 ```
 
 产物在 `dist_pkg/账单截图识别工具/`（约 230MB，含 OCR 模型）。把 `dist_template/` 里的 `启动.bat` 和 `使用说明.txt` 放在同级目录，整个文件夹压缩后即可发给别人 —— **对方电脑不需要安装 Python，也不需要联网**。
+
+打包完成后的成品发布在 [Releases](https://github.com/Dsimpson-man/bill-screenshot-ocr/releases)，供不想装环境的人直接下载。
 
 ## 输出格式
 
